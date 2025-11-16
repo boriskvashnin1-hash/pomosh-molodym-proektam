@@ -8,9 +8,22 @@
 <body>
     <header>
         <h1>🎯 Помощь молодым проектам</h1>
-        <a href="add-project.html" class="btn">+ Добавить проект</a>
+        <button onclick="showForm()" class="btn">+ Добавить проект</button>
     </header>
 
+    <!-- Форма добавления проекта (изначально скрыта) -->
+    <div id="projectForm" style="display: none;" class="form-container">
+        <h2>Добавить новый проект</h2>
+        <form onsubmit="addProject(event)">
+            <input type="text" id="title" placeholder="Название проекта" required>
+            <textarea id="description" placeholder="Описание проекта" required></textarea>
+            <input type="number" id="goal" placeholder="Целевая сумма (руб)" required>
+            <button type="submit" class="btn">Отправить на модерацию</button>
+            <button type="button" onclick="hideForm()" class="btn-cancel">Отмена</button>
+        </form>
+    </div>
+
+    <!-- Список проектов -->
     <div id="projects">
         <!-- Проекты загружаются через JS -->
     </div>
