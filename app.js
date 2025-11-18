@@ -183,7 +183,7 @@ class CrowdfundingApp {
 
     renderProjects() {
         const categories = this.getCategories();
-        const filteredProjects = this.applyFilters();
+        const filteredProjects = this.applyFiltersOnRender();
 
         return `
             <div class="page-header fade-in">
@@ -203,7 +203,7 @@ class CrowdfundingApp {
                 </div>
             </div>
 
-            <div class="projects-grid">
+            <div class="projects-grid" id="projectsGrid">
                 ${filteredProjects.length > 0 ? 
                   filteredProjects.map(project => this.renderProjectCard(project)).join('') :
                   '<div class="empty-state"><h3>Проекты не найдены</h3><p>Попробуйте изменить параметры поиска</p></div>'
@@ -522,7 +522,88 @@ class CrowdfundingApp {
         `;
     }
 
-    // 🔧 ФУНКЦИОНАЛ
+    // 🔧 ФИЛЬТРАЦИЯ И СОРТИРОВКА
+    applyFilters() {
+        const categoryFilter = document.getElementById('categoryFilter');
+        const sortSelect = document.getElementById('sortSelect');
+        const searchInput = document.getElementById('searchInput');
+        
+        if (!categoryFilter || !sortSelect || !searchInput) {
+            console.log('Фильтры не найдены');
+            return;
+        }
+        
+        const category = categoryFilter.value;
+        const sortBy = sortSelect.value;
+        const searchQuery = searchInput.value.toLowerCase().trim();
+        
+        console.log('Применяем фильтры:', { category, sortBy, searchQuery });
+        
+        let filteredProjects = [...this.projects];
+        
+        // Фильтрация по категории
+        if (category !== 'all') {
+            filteredProjects = filteredProjects.filter(project => 
+                project.category === category
+            );
+        }
+        
+        // Поиск
+        if (searchQuery) {
+            filteredProjects = filteredProjects.filter(project => 
+                project.title.toLowerCase().includes(searchQuery) ||
+                project.description.toLowerCase().includes(searchQuery) ||
+                project.author.toLowerCase().includes(searchQuery) ||
+                project.category.toLowerCase().includes(searchQuery)
+            );
+        }
+        
+        // Сортировка
+        filteredProjects = this.sortProjects(filteredProjects, sortBy);
+        
+        // Обновляем отображение
+        this.renderFilteredProjects(filteredProjects);
+    }
+
+    applyFiltersOnRender() {
+        // При первоначальном рендере показываем все проекты, отсортированные по новизне
+        return this.sortProjects([...this.projects], 'newest');
+    }
+
+    sortProjects(projects, criteria) {
+        const sorted = [...projects];
+        
+        switch(criteria) {
+            case 'newest':
+                return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            case 'popular':
+                return sorted.sort((a, b) => b.donors - a.donors);
+            case 'almost-done':
+                return sorted.sort((a, b) => {
+                    const progressA = (a.collected / a.goal);
+                    const progressB = (b.collected / b.goal);
+                    return progressB - progressA;
+                });
+            case 'most-funded':
+                return sorted.sort((a, b) => b.collected - a.collected);
+            default:
+                return sorted;
+        }
+    }
+
+    renderFilteredProjects(projects) {
+        const container = document.getElementById('projectsGrid');
+        if (!container) {
+            console.log('Контейнер projectsGrid не найден');
+            return;
+        }
+        
+        container.innerHTML = projects.length > 0 ? 
+            projects.map(project => this.renderProjectCard(project)).join('') :
+            '<div class="empty-state"><h3>Проекты не найдены</h3><p>Попробуйте изменить параметры поиска</p></div>';
+    }
+
+    // 🔧 ОСНОВНОЙ ФУНКЦИОНАЛ
     setupEventListeners() {
         document.getElementById('authBtn').addEventListener('click', () => {
             this.showAuthModal();
@@ -554,6 +635,8 @@ class CrowdfundingApp {
                 descTextarea.addEventListener('input', () => {
                     descCounter.textContent = descTextarea.value.length;
                 });
+                // Инициализируем счетчик
+                descCounter.textContent = descTextarea.value.length;
             }
         }
 
@@ -563,12 +646,15 @@ class CrowdfundingApp {
         const searchInput = document.getElementById('searchInput');
 
         if (categoryFilter) {
+            categoryFilter.removeEventListener('change', this.applyFilters);
             categoryFilter.addEventListener('change', () => this.applyFilters());
         }
         if (sortSelect) {
+            sortSelect.removeEventListener('change', this.applyFilters);
             sortSelect.addEventListener('change', () => this.applyFilters());
         }
         if (searchInput) {
+            searchInput.removeEventListener('input', this.applyFilters);
             searchInput.addEventListener('input', () => this.applyFilters());
         }
     }
@@ -576,14 +662,27 @@ class CrowdfundingApp {
     handleProjectSubmit(event) {
         event.preventDefault();
         
+        const title = document.getElementById('projectTitle').value;
+        const description = document.getElementById('projectDescription').value;
+        const goal = parseInt(document.getElementById('projectGoal').value);
+        const category = document.getElementById('projectCategory').value;
+        const author = document.getElementById('projectAuthor').value || 'Аноним';
+        const deadline = parseInt(document.getElementById('projectDeadline').value) || 30;
+        const image = document.getElementById('projectImage').value;
+
+        if (!title || !description || !goal || !category) {
+            this.showNotification('❌ Пожалуйста, заполните все обязательные поля', 'error');
+            return;
+        }
+
         const projectData = {
-            title: document.getElementById('projectTitle').value,
-            description: document.getElementById('projectDescription').value,
-            goal: parseInt(document.getElementById('projectGoal').value),
-            category: document.getElementById('projectCategory').value,
-            author: document.getElementById('projectAuthor').value || 'Аноним',
-            deadline: parseInt(document.getElementById('projectDeadline').value) || 30,
-            image: document.getElementById('projectImage').value,
+            title: title,
+            description: description,
+            goal: goal,
+            category: category,
+            author: author,
+            deadline: deadline,
+            image: image,
             createdAt: new Date().toISOString(),
             collected: 0,
             donors: 0,
@@ -635,7 +734,7 @@ class CrowdfundingApp {
         const amount = customAmount || parseInt(document.getElementById('customAmount')?.value);
         
         if (!amount || amount < 10) {
-            this.showNotification('Введите корректную сумму (минимум 10₽)', 'error');
+            this.showNotification('❌ Введите корректную сумму (минимум 10₽)', 'error');
             return;
         }
 
@@ -692,14 +791,6 @@ class CrowdfundingApp {
 
     showProjectDetail(projectId) {
         this.navigate(`project/${projectId}`);
-    }
-
-    applyFilters() {
-        // В реальном приложении здесь была бы фильтрация
-        // Сейчас просто перерисовываем
-        if (this.currentRoute === 'projects') {
-            this.render();
-        }
     }
 
     // 🌙 ТЁМНАЯ ТЕМА
