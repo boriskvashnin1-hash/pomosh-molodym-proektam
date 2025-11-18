@@ -59,7 +59,13 @@ class CrowdfundingApp {
 
     // 🎨 СИСТЕМА РЕНДЕРИНГА
     render() {
-        const content = document.getElementById('app-content');
+    const content = document.getElementById('app-content');
+    if (!content) {
+        console.error('App content element not found');
+        return;
+    }
+    
+    // остальной код render...
         
         switch(this.currentRoute) {
             case 'home':
