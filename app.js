@@ -9,11 +9,15 @@ class CrowdfundingApp {
     }
 
     init() {
-        this.setupRouter();
-        this.setupEventListeners();
-        this.loadInitialData();
+    this.setupRouter();
+    this.setupEventListeners();
+    this.loadInitialData();
+    
+    // Небольшая задержка для гарантированной отрисовки
+    setTimeout(() => {
         this.render();
-    }
+    }, 100);
+}
 
     // 🛣️ СИСТЕМА РОУТИНГА
     setupRouter() {
