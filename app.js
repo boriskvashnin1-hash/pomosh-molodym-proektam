@@ -5,19 +5,24 @@ class CrowdfundingApp {
         this.currentUser = null;
         this.currentRoute = 'home';
         this.currentProjectId = null;
+        this.deferredPrompt = null;
         this.init();
     }
 
     init() {
-    this.setupRouter();
-    this.setupEventListeners();
-    this.loadInitialData();
-    
-    // Небольшая задержка для гарантированной отрисовки
-    setTimeout(() => {
-        this.render();
-    }, 100);
-}
+        this.setupRouter();
+        this.setupEventListeners();
+        this.loadInitialData();
+        this.setupPWA();
+        
+        setTimeout(() => {
+            this.requestNotificationPermission();
+        }, 2000);
+        
+        setTimeout(() => {
+            this.render();
+        }, 100);
+    }
 
     // 🛣️ СИСТЕМА РОУТИНГА
     setupRouter() {
@@ -59,84 +64,120 @@ class CrowdfundingApp {
 
     // 🎨 СИСТЕМА РЕНДЕРИНГА
     render() {
-    const content = document.getElementById('app-content');
-    if (!content) {
-        console.error('App content element not found');
-        return;
-    }
-    
-    // остальной код render...
-        
-        switch(this.currentRoute) {
-            case 'home':
-                content.innerHTML = this.renderHome();
-                break;
-            case 'projects':
-                content.innerHTML = this.renderProjects();
-                break;
-            case 'create':
-                content.innerHTML = this.renderCreateForm();
-                break;
-            case 'stats':
-                content.innerHTML = this.renderStats();
-                break;
-            case 'project-detail':
-                content.innerHTML = this.renderProjectDetail();
-                break;
-            default:
-                content.innerHTML = this.renderHome();
-        }
+        const content = document.getElementById('app-content');
+        if (!content) return;
 
-        this.updateNavigation();
-        this.setupDynamicEventListeners();
+        // Показываем скелетон загрузки
+        content.innerHTML = this.renderSkeleton();
+        
+        setTimeout(() => {
+            switch(this.currentRoute) {
+                case 'home':
+                    content.innerHTML = this.renderHome();
+                    break;
+                case 'projects':
+                    content.innerHTML = this.renderProjects();
+                    break;
+                case 'create':
+                    content.innerHTML = this.renderCreateForm();
+                    break;
+                case 'stats':
+                    content.innerHTML = this.renderStats();
+                    break;
+                case 'project-detail':
+                    content.innerHTML = this.renderProjectDetail();
+                    break;
+                default:
+                    content.innerHTML = this.renderHome();
+            }
+
+            this.updateNavigation();
+            this.setupDynamicEventListeners();
+        }, 300);
+    }
+
+    renderSkeleton() {
+        return `
+            <div class="projects-grid">
+                ${Array.from({length: 6}, () => `
+                    <div class="project-card">
+                        <div class="project-image skeleton"></div>
+                        <div class="project-content">
+                            <div class="skeleton-text" style="width: 80%"></div>
+                            <div class="skeleton-text short"></div>
+                            <div class="skeleton-text" style="width: 60%"></div>
+                            <div class="progress skeleton" style="height: 8px; margin: 1rem 0"></div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <div class="skeleton-text" style="flex: 1; height: 2.5rem"></div>
+                                <div class="skeleton-text" style="width: 2.5rem; height: 2.5rem"></div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
     }
 
     renderHome() {
-        const featuredProjects = this.projects.slice(0, 3);
+        const featuredProjects = this.getRecommendedProjects();
+        const trendingProjects = this.getTrendingProjects();
         const stats = this.getPlatformStats();
 
         return `
-            <div class="hero-section">
+            <div class="hero-section fade-in">
                 <div class="hero-content">
-                    <h2>Поддержи молодые проекты!</h2>
-                    <p>Помогите реализовать интересные идеи и изменить мир к лучшему</p>
-                    <button onclick="app.navigate('create')" class="btn btn-large">Создать проект</button>
+                    <h2>Помощь молодым проектам</h2>
+                    <p>Поддержи начинания школьников и студентов - вместе мы можем больше!</p>
+                    <button onclick="app.navigate('create')" class="btn btn-large btn-gradient hover-lift">
+                        🚀 Создать проект
+                    </button>
                 </div>
             </div>
 
-            <div class="stats-overview">
-                <div class="stat-card">
+            <div class="stats-overview fade-in">
+                <div class="stat-card hover-lift">
                     <div class="stat-number">${stats.totalProjects}</div>
                     <div class="stat-label">Активных проектов</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card hover-lift">
                     <div class="stat-number">${stats.totalCollected}₽</div>
                     <div class="stat-label">Собрано всего</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card hover-lift">
                     <div class="stat-number">${stats.totalDonors}</div>
                     <div class="stat-label">Участников</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card hover-lift">
                     <div class="stat-number">${stats.successRate}%</div>
                     <div class="stat-label">Успешных сборов</div>
                 </div>
             </div>
 
-            <section class="featured-projects">
-                <h3>Рекомендуемые проекты</h3>
+            <section class="featured-projects fade-in">
+                <h3>🎯 Рекомендуемые проекты</h3>
                 <div class="projects-grid">
                     ${featuredProjects.length > 0 ? 
                       featuredProjects.map(project => this.renderProjectCard(project)).join('') :
-                      '<p class="empty-state">Пока нет проектов. Будьте первым!</p>'
+                      '<div class="empty-state"><h3>Пока нет проектов</h3><p>Будьте первым, кто создаст проект!</p></div>'
                     }
                 </div>
                 ${featuredProjects.length > 0 ? `
                     <div class="text-center">
-                        <button onclick="app.navigate('projects')" class="btn btn-outline">Смотреть все проекты</button>
+                        <button onclick="app.navigate('projects')" class="btn btn-outline hover-lift">
+                            👀 Смотреть все проекты
+                        </button>
                     </div>
                 ` : ''}
             </section>
+
+            ${trendingProjects.length > 0 ? `
+                <section class="featured-projects fade-in">
+                    <h3>📈 Популярные проекты</h3>
+                    <div class="projects-grid">
+                        ${trendingProjects.map(project => this.renderProjectCard(project)).join('')}
+                    </div>
+                </section>
+            ` : ''}
         `;
     }
 
@@ -145,12 +186,12 @@ class CrowdfundingApp {
         const filteredProjects = this.applyFilters();
 
         return `
-            <div class="page-header">
+            <div class="page-header fade-in">
                 <h2>Все проекты</h2>
                 <div class="filters">
                     <select id="categoryFilter">
                         <option value="all">Все категории</option>
-                        ${categories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                        ${categories.map(cat => `<option value="${cat}">${this.getCategoryIcon(cat)} ${cat}</option>`).join('')}
                     </select>
                     <select id="sortSelect">
                         <option value="newest">Сначала новые</option>
@@ -158,7 +199,7 @@ class CrowdfundingApp {
                         <option value="almost-done">Почти собраны</option>
                         <option value="most-funded">Больше всего собрано</option>
                     </select>
-                    <input type="text" id="searchInput" placeholder="Поиск проектов...">
+                    <input type="text" id="searchInput" placeholder="🔍 Поиск проектов...">
                 </div>
             </div>
 
@@ -175,12 +216,15 @@ class CrowdfundingApp {
         const progress = (project.collected / project.goal) * 100;
         const daysLeft = project.deadline ? this.getDaysLeft(project.deadline) : null;
         const isUrgent = daysLeft && daysLeft < 7 && progress < 100;
+        const achievements = this.getAchievements(project);
+        const isFeatured = project.donors > 30 || progress > 80;
 
         return `
-            <div class="project-card" onclick="app.showProjectDetail('${project.id}')">
+            <div class="project-card ${isFeatured ? 'featured' : ''} fade-in hover-lift">
+                ${isFeatured ? '<div class="featured-badge">🔥 Популярный</div>' : ''}
                 <div class="project-image">
-                    ${project.image ? `<img src="${project.image}" alt="${project.title}">` : '📁'}
-                    ${isUrgent ? '<div class="urgent-badge">Срочно!</div>' : ''}
+                    ${project.image ? `<img src="${project.image}" alt="${project.title}" loading="lazy">` : '📁'}
+                    ${isUrgent ? '<div class="urgent-badge">⏰ Срочно!</div>' : ''}
                 </div>
                 
                 <div class="project-content">
@@ -190,6 +234,12 @@ class CrowdfundingApp {
                     </div>
                     
                     <p class="project-description">${project.description.substring(0, 100)}...</p>
+                    
+                    ${achievements.length > 0 ? `
+                        <div class="achievements">
+                            ${achievements.map(ach => `<span class="achievement">${ach}</span>`).join('')}
+                        </div>
+                    ` : ''}
                     
                     <div class="project-author">
                         <span>👤 ${project.author}</span>
@@ -212,11 +262,26 @@ class CrowdfundingApp {
                         ${daysLeft ? `<span>⏰ ${daysLeft} дней осталось</span>` : ''}
                     </div>
 
+                    ${project.averageRating ? `
+                        <div class="rating">
+                            ${[1,2,3,4,5].map(star => `
+                                <span class="star ${star <= Math.round(project.averageRating) ? 'active' : ''}">
+                                    ${star <= Math.round(project.averageRating) ? '⭐' : '☆'}
+                                </span>
+                            `).join('')}
+                            <small>(${project.rating.count})</small>
+                        </div>
+                    ` : ''}
+
                     <div class="project-actions">
                         <button onclick="event.stopPropagation(); app.supportProject('${project.id}')" 
-                                class="btn btn-donate">Поддержать</button>
+                                class="btn btn-donate hover-lift">💝 Поддержать</button>
                         <button onclick="event.stopPropagation(); app.toggleFavorite('${project.id}')" 
-                                class="btn-icon ${project.isFavorite ? 'favorite' : ''}">⭐</button>
+                                class="btn-icon ${project.isFavorite ? 'favorite' : ''} hover-lift">⭐</button>
+                        ${!project.averageRating ? `
+                            <button onclick="event.stopPropagation(); app.showRatingModal('${project.id}')" 
+                                    class="btn-icon hover-lift">👍</button>
+                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -225,7 +290,7 @@ class CrowdfundingApp {
 
     renderCreateForm() {
         return `
-            <div class="form-container">
+            <div class="form-container fade-in">
                 <h2>Создать новый проект</h2>
                 <form id="projectForm" class="project-form">
                     <div class="form-group">
@@ -277,8 +342,8 @@ class CrowdfundingApp {
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Создать проект</button>
-                        <button type="button" onclick="app.navigate('home')" class="btn btn-cancel">Отмена</button>
+                        <button type="submit" class="btn btn-primary btn-gradient hover-lift">🚀 Создать проект</button>
+                        <button type="button" onclick="app.navigate('home')" class="btn btn-cancel hover-lift">Отмена</button>
                     </div>
                 </form>
             </div>
@@ -287,44 +352,45 @@ class CrowdfundingApp {
 
     renderStats() {
         const stats = this.getPlatformStats();
+        const advancedStats = this.getAdvancedStats();
         const recentProjects = this.projects.slice(0, 5);
 
         return `
-            <div class="stats-page">
-                <h2>Статистика платформы</h2>
+            <div class="stats-page fade-in">
+                <h2>📊 Статистика платформы</h2>
                 
                 <div class="stats-grid">
-                    <div class="stat-card">
+                    <div class="stat-card hover-lift">
                         <div class="stat-number">${stats.totalProjects}</div>
                         <div class="stat-label">Всего проектов</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card hover-lift">
                         <div class="stat-number">${stats.totalCollected}₽</div>
                         <div class="stat-label">Общая сумма сборов</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card hover-lift">
                         <div class="stat-number">${stats.avgDonation}₽</div>
                         <div class="stat-label">Средний донат</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card hover-lift">
                         <div class="stat-number">${stats.successRate}%</div>
                         <div class="stat-label">Успешных проектов</div>
                     </div>
                 </div>
 
                 <div class="charts-section">
-                    <div class="chart-container">
-                        <h3>Распределение по категориям</h3>
+                    <div class="chart-container hover-lift">
+                        <h3>📈 Распределение по категориям</h3>
                         <div class="chart" id="categoryChart">
                             ${this.renderCategoryChart()}
                         </div>
                     </div>
                     
-                    <div class="chart-container">
-                        <h3>Последние проекты</h3>
+                    <div class="chart-container hover-lift">
+                        <h3>🆕 Последние проекты</h3>
                         <div class="recent-projects">
                             ${recentProjects.map(project => `
-                                <div class="recent-project">
+                                <div class="recent-project hover-lift" onclick="app.showProjectDetail('${project.id}')">
                                     <span>${project.title}</span>
                                     <span class="project-amount">${project.collected}₽</span>
                                 </div>
@@ -332,6 +398,20 @@ class CrowdfundingApp {
                         </div>
                     </div>
                 </div>
+
+                ${advancedStats.trendingProjects.length > 0 ? `
+                    <div class="chart-container hover-lift">
+                        <h3>🔥 Топ проектов</h3>
+                        <div class="recent-projects">
+                            ${advancedStats.trendingProjects.map(project => `
+                                <div class="recent-project hover-lift" onclick="app.showProjectDetail('${project.id}')">
+                                    <span>${project.title}</span>
+                                    <span class="project-amount">${project.collected}₽</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
     }
@@ -339,39 +419,46 @@ class CrowdfundingApp {
     renderProjectDetail() {
         const project = this.projects.find(p => p.id === this.currentProjectId);
         if (!project) {
-            return '<div class="error-state"><h3>Проект не найден</h3><button onclick="app.navigate(\'projects\')" class="btn">Вернуться к проектам</button></div>';
+            return '<div class="error-state fade-in"><h3>Проект не найден</h3><button onclick="app.navigate(\'projects\')" class="btn">Вернуться к проектам</button></div>';
         }
 
         const progress = (project.collected / project.goal) * 100;
+        const achievements = this.getAchievements(project);
 
         return `
             <div class="project-detail">
-                <button onclick="app.navigate('projects')" class="btn btn-back">← Назад к проектам</button>
+                <button onclick="app.navigate('projects')" class="btn btn-back hover-lift">← Назад к проектам</button>
                 
-                <div class="project-hero">
-                    <div class="project-hero-image">
-                        ${project.image ? `<img src="${project.image}" alt="${project.title}">` : '📁'}
+                <div class="project-hero fade-in">
+                    <div class="project-hero-image hover-lift">
+                        ${project.image ? `<img src="${project.image}" alt="${project.title}" loading="lazy">` : '📁'}
                     </div>
                     <div class="project-hero-content">
                         <h1>${project.title}</h1>
-                        <p class="project-meta">Автор: ${project.author} • ${this.formatDate(project.createdAt)}</p>
+                        <p class="project-meta">Автор: ${project.author} • 📅 ${this.formatDate(project.createdAt)}</p>
+                        
+                        ${achievements.length > 0 ? `
+                            <div class="achievements">
+                                ${achievements.map(ach => `<span class="achievement">${ach}</span>`).join('')}
+                            </div>
+                        ` : ''}
                         
                         <div class="project-stats-large">
-                            <div class="stat">
-                                <div class="stat-number">${project.collected}₽</div>
-                                <div class="stat-label">Собрано</div>
+                            <div class="stat hover-lift">
+                                <span class="stat-number">${project.collected}₽</span>
+                                <span class="stat-label">Собрано</span>
                             </div>
-                            <div class="stat">
-                                <div class="stat-number">${project.goal}₽</div>
-                                <div class="stat-label">Цель</div>
+                            <div class="stat hover-lift">
+                                <span class="stat-number">${project.goal}₽</span>
+                                <span class="stat-label">Цель</span>
                             </div>
-                            <div class="stat">
-                                <div class="stat-number">${project.donors}</div>
-                                <div class="stat-label">Поддержали</div>
+                            <div class="stat hover-lift">
+                                <span class="stat-number">${project.donors}</span>
+                                <span class="stat-label">Поддержали</span>
                             </div>
-                            <div class="stat">
-                                <div class="stat-number">${Math.round(progress)}%</div>
-                                <div class="stat-label">Прогресс</div>
+                            <div class="stat hover-lift">
+                                <span class="stat-number">${Math.round(progress)}%</span>
+                                <span class="stat-label">Прогресс</span>
                             </div>
                         </div>
 
@@ -379,18 +466,36 @@ class CrowdfundingApp {
                             <div class="progress-bar" style="width: ${Math.min(progress, 100)}%"></div>
                         </div>
 
-                        <button onclick="app.supportProject('${project.id}')" class="btn btn-donate-large">Поддержать проект</button>
+                        <button onclick="app.supportProject('${project.id}')" class="btn btn-donate-large btn-gradient hover-lift">
+                            💝 Поддержать проект
+                        </button>
                     </div>
                 </div>
 
-                <div class="project-content-detailed">
+                <div class="project-content-detailed fade-in">
                     <div class="project-description-full">
-                        <h3>О проекте</h3>
+                        <h3>📖 О проекте</h3>
                         <p>${project.description}</p>
+                        
+                        ${project.averageRating ? `
+                            <div class="rating" style="margin-top: 2rem;">
+                                <h4>⭐ Рейтинг проекта</h4>
+                                <div>
+                                    ${[1,2,3,4,5].map(star => `
+                                        <span class="star ${star <= Math.round(project.averageRating) ? 'active' : ''}">
+                                            ${star <= Math.round(project.averageRating) ? '⭐' : '☆'}
+                                        </span>
+                                    `).join('')}
+                                    <span style="margin-left: 1rem; color: var(--text-light);">
+                                        ${project.averageRating.toFixed(1)} из 5 (${project.rating.count} оценок)
+                                    </span>
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
 
                     <div class="project-sidebar">
-                        <div class="info-card">
+                        <div class="info-card hover-lift">
                             <h4>📋 Информация</h4>
                             <div class="info-item">
                                 <strong>Категория:</strong>
@@ -399,6 +504,10 @@ class CrowdfundingApp {
                             <div class="info-item">
                                 <strong>Статус:</strong>
                                 <span>${project.status}</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Автор:</strong>
+                                <span>${project.author}</span>
                             </div>
                             ${project.deadline ? `
                                 <div class="info-item">
@@ -417,6 +526,15 @@ class CrowdfundingApp {
     setupEventListeners() {
         document.getElementById('authBtn').addEventListener('click', () => {
             this.showAuthModal();
+        });
+
+        // PWA установка
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            this.deferredPrompt = e;
+            setTimeout(() => {
+                this.showInstallPrompt();
+            }, 5000);
         });
     }
 
@@ -476,7 +594,8 @@ class CrowdfundingApp {
         this.projects.unshift(projectData);
         this.saveToStorage();
         
-        this.showNotification('Проект успешно создан!', 'success');
+        this.showNotification('🎉 Проект успешно создан!', 'success');
+        this.showSystemNotification('Проект создан', 'Ваш проект теперь виден всем пользователям!');
         this.navigate('projects');
     }
 
@@ -490,18 +609,20 @@ class CrowdfundingApp {
         if (!project) return;
 
         this.showModal(`
-            <h3>Поддержать проект</h3>
-            <p>«${project.title}»</p>
+            <h3>💝 Поддержать проект</h3>
+            <p><strong>«${project.title}»</strong></p>
+            <p style="color: var(--text-light); margin: 1rem 0;">Выберите сумму поддержки:</p>
             
             <div class="donation-amounts" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin: 1.5rem 0;">
-                <button onclick="app.processDonation('${projectId}', 100)" class="btn btn-outline">100₽</button>
-                <button onclick="app.processDonation('${projectId}', 500)" class="btn btn-outline">500₽</button>
-                <button onclick="app.processDonation('${projectId}', 1000)" class="btn btn-outline">1000₽</button>
+                <button onclick="app.processDonation('${projectId}', 100)" class="btn btn-outline hover-lift">100₽</button>
+                <button onclick="app.processDonation('${projectId}', 500)" class="btn btn-outline hover-lift">500₽</button>
+                <button onclick="app.processDonation('${projectId}', 1000)" class="btn btn-outline hover-lift">1000₽</button>
             </div>
             
             <div class="custom-amount" style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                <input type="number" id="customAmount" placeholder="Другая сумма" min="10" style="flex: 1; padding: 0.75rem; border: 2px solid var(--border); border-radius: 0.5rem;">
-                <button onclick="app.processCustomDonation('${projectId}')" class="btn">Поддержать</button>
+                <input type="number" id="customAmount" placeholder="Другая сумма" min="10" 
+                       style="flex: 1; padding: 0.75rem; border: 2px solid var(--border); border-radius: 0.5rem; background: var(--surface); color: var(--text);">
+                <button onclick="app.processCustomDonation('${projectId}')" class="btn btn-gradient hover-lift">Поддержать</button>
             </div>
         `);
     }
@@ -527,7 +648,8 @@ class CrowdfundingApp {
             this.render();
             this.hideModal();
             
-            this.showNotification(`Спасибо! Вы поддержали проект на ${amount}₽`, 'success');
+            this.showNotification(`🎉 Спасибо! Вы поддержали проект на ${amount}₽`, 'success');
+            this.showSystemNotification('Поддержка проекта', `Вы успешно поддержали проект "${project.title}" на ${amount}₽`);
         }
     }
 
@@ -543,10 +665,28 @@ class CrowdfundingApp {
             this.saveToStorage();
             this.render();
             
-            this.showNotification(
-                project.isFavorite ? 'Проект добавлен в избранное' : 'Проект удален из избранное',
-                'success'
-            );
+            const message = project.isFavorite ? '⭐ Проект добавлен в избранное' : '📋 Проект удален из избранного';
+            this.showNotification(message, 'success');
+        }
+    }
+
+    rateProject(projectId, rating) {
+        if (!this.currentUser) {
+            this.showAuthModal();
+            return;
+        }
+
+        const project = this.projects.find(p => p.id === projectId);
+        if (project) {
+            project.rating = project.rating || { total: 0, count: 0 };
+            project.rating.total += rating;
+            project.rating.count += 1;
+            project.averageRating = project.rating.total / project.rating.count;
+            
+            this.saveToStorage();
+            this.render();
+            this.hideModal();
+            this.showNotification('⭐ Спасибо за вашу оценку!', 'success');
         }
     }
 
@@ -559,6 +699,107 @@ class CrowdfundingApp {
         // Сейчас просто перерисовываем
         if (this.currentRoute === 'projects') {
             this.render();
+        }
+    }
+
+    // 🌙 ТЁМНАЯ ТЕМА
+    toggleTheme() {
+        document.body.classList.toggle('dark-theme');
+        const isDark = document.body.classList.contains('dark-theme');
+        localStorage.setItem('darkTheme', isDark);
+        
+        const themeIcon = document.getElementById('themeIcon');
+        themeIcon.textContent = isDark ? '☀️' : '🌙';
+        
+        this.showNotification(isDark ? '🌙 Тёмная тема включена' : '☀️ Светлая тема включена', 'info');
+    }
+
+    // 🏆 СИСТЕМА ДОСТИЖЕНИЙ
+    getAchievements(project) {
+        const achievements = [];
+        const progress = (project.collected / project.goal) * 100;
+        
+        if (project.collected >= project.goal) {
+            achievements.push('🎯 Цель достигнута');
+        }
+        
+        if (project.donors >= 50) {
+            achievements.push('👥 Популярный проект');
+        }
+        
+        if (project.collected >= project.goal * 2) {
+            achievements.push('🚀 Превышение цели');
+        }
+        
+        if (progress >= 90 && progress < 100) {
+            achievements.push('⏰ Почти у цели');
+        }
+        
+        if (project.donors >= 100) {
+            achievements.push('🔥 Мега-популярный');
+        }
+        
+        return achievements;
+    }
+
+    // 📱 PWA ФУНКЦИИ
+    setupPWA() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('SW registered: ', registration);
+                })
+                .catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
+        }
+    }
+
+    showInstallPrompt() {
+        if (this.deferredPrompt && !localStorage.getItem('installPromptShown')) {
+            this.showModal(`
+                <h3>📱 Установить приложение</h3>
+                <p>Установите наше приложение для быстрого доступа!</p>
+                <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                    <button onclick="app.installApp()" class="btn btn-gradient hover-lift">Установить</button>
+                    <button onclick="app.hideModal(); localStorage.setItem('installPromptShown', 'true');" 
+                            class="btn btn-outline hover-lift">Позже</button>
+                </div>
+            `);
+        }
+    }
+
+    async installApp() {
+        if (this.deferredPrompt) {
+            this.deferredPrompt.prompt();
+            const { outcome } = await this.deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                this.showNotification('📱 Приложение успешно установлено!', 'success');
+            }
+            this.deferredPrompt = null;
+            this.hideModal();
+            localStorage.setItem('installPromptShown', 'true');
+        }
+    }
+
+    // 🔔 УВЕДОМЛЕНИЯ
+    requestNotificationPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    this.showNotification('🔔 Уведомления включены!', 'success');
+                }
+            });
+        }
+    }
+
+    showSystemNotification(title, message) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, { 
+                body: message, 
+                icon: '/icon.png',
+                badge: '/icon.png'
+            });
         }
     }
 
@@ -587,7 +828,7 @@ class CrowdfundingApp {
             {
                 id: '1',
                 title: "Школьный сад мечты",
-                description: "Создание современной зоны отдыха с растениями и местом для учебы на открытом воздухе. Мы планируем посадить фруктовые деревья, разбить цветники и установить удобные скамейки для занятий.",
+                description: "Создание современной зоны отдыха с растениями и местом для учебы на открытом воздухе. Мы планируем посадить фруктовые деревья, разбить цветники и установить удобные скамейки для занятий. Это будет прекрасное место для отдыха и учебы всех учеников нашей школы.",
                 goal: 50000,
                 collected: 32500,
                 category: "экология",
@@ -596,12 +837,14 @@ class CrowdfundingApp {
                 donors: 47,
                 status: "active",
                 deadline: 45,
-                isFavorite: false
+                isFavorite: false,
+                rating: { total: 23, count: 5 },
+                averageRating: 4.6
             },
             {
                 id: '2', 
                 title: "Робототехника для всех",
-                description: "Закупка оборудования для кружка робототехники и проведение мастер-классов для всех желающих. Arduino, 3D-принтер, компоненты для сборки роботов.",
+                description: "Закупка оборудования для кружка робототехники и проведение мастер-классов для всех желающих. Arduino, 3D-принтер, компоненты для сборки роботов. Мы хотим сделать технологии доступными для каждого ребенка в нашем городе.",
                 goal: 75000,
                 collected: 68200,
                 category: "технологии", 
@@ -610,12 +853,14 @@ class CrowdfundingApp {
                 donors: 89,
                 status: "active",
                 deadline: 15,
-                isFavorite: true
+                isFavorite: true,
+                rating: { total: 45, count: 10 },
+                averageRating: 4.5
             },
             {
                 id: '3',
                 title: "Молодежный театр",
-                description: "Создание театральной студии для подростков. Костюмы, декорации, сценическое оборудование для постановки спектаклей.",
+                description: "Создание театральной студии для подростков. Костюмы, декорации, сценическое оборудование для постановки спектаклей. Мы верим, что искусство может изменить жизни молодых людей.",
                 goal: 30000,
                 collected: 18500,
                 category: "искусство",
@@ -625,6 +870,22 @@ class CrowdfundingApp {
                 status: "active",
                 deadline: 60,
                 isFavorite: false
+            },
+            {
+                id: '4',
+                title: "Спортивная площадка",
+                description: "Строительство современной спортивной площадки с тренажерами и зоной для воркаута. Открытое пространство для занятий спортом всех желающих.",
+                goal: 120000,
+                collected: 95600,
+                category: "спорт",
+                author: "Спортклуб 'Энергия'",
+                createdAt: new Date('2024-01-05').toISOString(),
+                donors: 156,
+                status: "active",
+                deadline: 30,
+                isFavorite: true,
+                rating: { total: 67, count: 15 },
+                averageRating: 4.8
             }
         ];
     }
@@ -647,6 +908,19 @@ class CrowdfundingApp {
         };
     }
 
+    getAdvancedStats() {
+        const stats = this.getPlatformStats();
+        const trendingProjects = this.projects
+            .filter(p => p.donors > 0)
+            .sort((a, b) => (b.collected / b.donors) - (a.collected / a.donors))
+            .slice(0, 5);
+
+        return {
+            ...stats,
+            trendingProjects
+        };
+    }
+
     getCategories() {
         const categories = [...new Set(this.projects.map(p => p.category))];
         return categories.filter(Boolean);
@@ -664,6 +938,30 @@ class CrowdfundingApp {
         return icons[category] || '📋';
     }
 
+    getRecommendedProjects() {
+        if (!this.currentUser) return this.projects.slice(0, 3);
+        
+        const userFavorites = this.projects.filter(p => p.isFavorite);
+        const favoriteCategories = [...new Set(userFavorites.map(p => p.category))];
+        
+        if (favoriteCategories.length === 0) return this.projects.slice(0, 3);
+        
+        return this.projects
+            .filter(project => 
+                favoriteCategories.includes(project.category) && 
+                !project.isFavorite &&
+                project.status === 'active'
+            )
+            .slice(0, 3);
+    }
+
+    getTrendingProjects() {
+        return this.projects
+            .filter(p => p.donors > 10)
+            .sort((a, b) => b.donors - a.donors)
+            .slice(0, 3);
+    }
+
     formatDate(dateString) {
         return new Date(dateString).toLocaleDateString('ru-RU');
     }
@@ -679,6 +977,8 @@ class CrowdfundingApp {
             categories[project.category] = (categories[project.category] || 0) + 1;
         });
 
+        const total = this.projects.length;
+        
         return Object.entries(categories).map(([category, count]) => `
             <div class="chart-item">
                 <div class="chart-label">
@@ -686,7 +986,7 @@ class CrowdfundingApp {
                     <span>${count}</span>
                 </div>
                 <div class="chart-bar">
-                    <div class="chart-bar-fill" style="width: ${(count / this.projects.length) * 100}%"></div>
+                    <div class="chart-bar-fill" style="width: ${(count / total) * 100}%"></div>
                 </div>
             </div>
         `).join('');
@@ -715,6 +1015,58 @@ class CrowdfundingApp {
         }, 5000);
     }
 
+    showRatingModal(projectId) {
+        this.showModal(`
+            <h3>⭐ Оцените проект</h3>
+            <p>Как вам этот проект?</p>
+            <div class="rating-large" style="font-size: 2rem; text-align: center; margin: 1.5rem 0; display: flex; justify-content: center; gap: 0.5rem;">
+                ${[1,2,3,4,5].map(star => `
+                    <span onclick="app.rateProject('${projectId}', ${star})" 
+                          class="star hover-lift" 
+                          style="cursor: pointer; transition: transform 0.2s;"
+                          onmouseover="this.style.transform='scale(1.2)'"
+                          onmouseout="this.style.transform='scale(1)'">
+                        ☆
+                    </span>
+                `).join('')}
+            </div>
+        `);
+    }
+
+    showAuthModal() {
+        this.showModal(`
+            <h3>🔐 Вход в систему</h3>
+            <div class="auth-form" style="display: flex; flex-direction: column; gap: 1rem;">
+                <input type="text" id="authName" placeholder="Ваше имя" value="${this.currentUser?.name || ''}">
+                <input type="email" id="authEmail" placeholder="Email" value="${this.currentUser?.email || ''}">
+                <button onclick="app.handleAuth()" class="btn btn-gradient hover-lift">Войти / Зарегистрироваться</button>
+            </div>
+        `);
+    }
+
+    handleAuth() {
+        const name = document.getElementById('authName').value || 'Пользователь';
+        const email = document.getElementById('authEmail').value || 'user@example.com';
+        
+        this.currentUser = { 
+            name, 
+            email,
+            avatar: name.charAt(0).toUpperCase()
+        };
+        this.saveToStorage();
+        this.hideModal();
+        this.render();
+        
+        this.showNotification(`🎉 Добро пожаловать, ${name}!`, 'success');
+    }
+
+    logout() {
+        this.currentUser = null;
+        localStorage.removeItem('current_user');
+        this.render();
+        this.showNotification('👋 Вы вышли из системы', 'info');
+    }
+
     updateNavigation() {
         document.querySelectorAll('.nav-link').forEach(link => {
             link.classList.toggle('active', link.getAttribute('data-route') === this.currentRoute);
@@ -724,45 +1076,19 @@ class CrowdfundingApp {
         const authBtn = document.getElementById('authBtn');
         const userMenu = document.getElementById('userMenu');
         const userName = document.getElementById('userName');
+        const userAvatar = document.getElementById('userAvatar');
 
         if (this.currentUser) {
             authBtn.style.display = 'none';
             userMenu.style.display = 'flex';
+            userMenu.style.alignItems = 'center';
+            userMenu.style.gap = '0.75rem';
             userName.textContent = this.currentUser.name;
+            userAvatar.textContent = this.currentUser.avatar;
         } else {
             authBtn.style.display = 'block';
             userMenu.style.display = 'none';
         }
-    }
-
-    showAuthModal() {
-        this.showModal(`
-            <h3>Вход в систему</h3>
-            <div class="auth-form" style="display: flex; flex-direction: column; gap: 1rem;">
-                <input type="text" id="authName" placeholder="Ваше имя" value="${this.currentUser?.name || ''}">
-                <input type="email" id="authEmail" placeholder="Email" value="${this.currentUser?.email || ''}">
-                <button onclick="app.handleAuth()" class="btn btn-primary">Войти / Зарегистрироваться</button>
-            </div>
-        `);
-    }
-
-    handleAuth() {
-        const name = document.getElementById('authName').value || 'Пользователь';
-        const email = document.getElementById('authEmail').value || 'user@example.com';
-        
-        this.currentUser = { name, email };
-        this.saveToStorage();
-        this.hideModal();
-        this.render();
-        
-        this.showNotification(`Добро пожаловать, ${name}!`, 'success');
-    }
-
-    logout() {
-        this.currentUser = null;
-        localStorage.removeItem('current_user');
-        this.render();
-        this.showNotification('Вы вышли из системы', 'info');
     }
 }
 
