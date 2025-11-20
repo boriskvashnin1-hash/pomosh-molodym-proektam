@@ -3,83 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ПомощьПроектам - Краудфандинг для молодежи</title>
+    <title>Помощь молодым проектам</title>
+    <meta name="description" content="Платформа для поддержки молодых проектов и идей">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Навигация -->
-        <nav class="navbar">
-            <div class="nav-brand">
-                <h1>🤝 ПомощьПроектам</h1>
-            </div>
-            <div class="nav-links">
-                <a href="#/" class="nav-link" data-route="home">Главная</a>
-                <a href="#/projects" class="nav-link" data-route="projects">Проекты</a>
-                <a href="#/create" class="nav-link" data-route="create">Создать</a>
-                <a href="#/stats" class="nav-link" data-route="stats">Статистика</a>
-            </div>
-            <div class="nav-actions">
-                ${this.currentUser ? `
-                    <div class="user-menu">
-                        <span>👤 ${this.currentUser.name}</span>
-                        <button onclick="app.logout()" class="btn btn-outline">Выйти</button>
-                    </div>
-                ` : `
-                    <button onclick="app.showAuthModal()" class="btn btn-gradient">Войти</button>
-                `}
-            </div>
-        </nav>
-
-        <!-- Основной контент -->
-        <main class="main-content">
-            <div id="app-content">
-                <!-- Контент будет рендериться здесь -->
-            </div>
-        </main>
-
-        <!-- Виджеты соцсетей -->
-        <div id="socialWidgets" class="social-widgets-panel">
-            <div class="social-widget">
-                <h4>📱 Наше сообщество</h4>
-                <button onclick="app.joinTelegram()" class="btn btn-small">Telegram</button>
-                <button onclick="app.watchYouTube()" class="btn btn-small">YouTube</button>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1>🎯 ПомощьПроектам</h1>
+        </div>
+        <div class="nav-links">
+            <a href="#/" class="nav-link" data-route="home">Главная</a>
+            <a href="#/projects" class="nav-link" data-route="projects">Все проекты</a>
+            <a href="#/create" class="nav-link" data-route="create">Создать проект</a>
+            <a href="#/stats" class="nav-link" data-route="stats">Статистика</a>
+        </div>
+        <div class="nav-actions">
+            <button class="theme-toggle" onclick="app.toggleTheme()" title="Сменить тему">
+                <span id="themeIcon">🌙</span>
+            </button>
+            <button id="authBtn" class="btn btn-outline">Войти</button>
+            <div id="userMenu" style="display: none;">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <span id="userName"></span>
+                <button onclick="app.logout()" class="btn btn-outline">Выйти</button>
             </div>
         </div>
+    </nav>
 
-        <!-- Живые уведомления -->
-        <div id="liveNotifications" class="live-notifications"></div>
+    <!-- Основной контент -->
+    <main id="app-content">
+        <!-- Контент загружается динамически -->
+    </main>
 
-        <!-- Модальные окна -->
-        <div id="authModal" class="modal">
-            <div class="modal-content">
-                <!-- Контент модалки -->
-            </div>
-        </div>
-
-        <div id="achievementModal" class="modal">
-            <div class="modal-content" id="achievementModalBody">
-                <!-- Контент достижений -->
-            </div>
-        </div>
-
-        <!-- Чат поддержки -->
-        <div class="chat-widget">
-            <button onclick="app.toggleChat()" class="chat-toggle">💬 Поддержка</button>
-            <div id="chatContainer" class="chat-container">
-                <div class="chat-header">
-                    <h4>Чат поддержки</h4>
-                    <button onclick="app.toggleChat()" class="btn-close">×</button>
-                </div>
-                <div id="chatMessages" class="chat-messages"></div>
-                <div class="chat-input">
-                    <input type="text" id="chatInput" placeholder="Введите сообщение...">
-                    <button onclick="app.sendMessage()">📤</button>
-                </div>
-            </div>
+    <!-- Модальные окна -->
+    <div id="modalOverlay" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div id="modalBody"></div>
+            <button onclick="app.hideModal()" class="btn btn-cancel">Закрыть</button>
         </div>
     </div>
 
+    <!-- Уведомления -->
+    <div id="notifications" class="notifications"></div>
+
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>🎯 ПомощьПроектам</h3>
+                <p>Платформа для поддержки молодых идей и начинаний</p>
+            </div>
+            <div class="footer-section">
+                <h4>Навигация</h4>
+                <a href="#/" onclick="app.navigate('home')">Главная</a>
+                <a href="#/projects" onclick="app.navigate('projects')">Проекты</a>
+                <a href="#/create" onclick="app.navigate('create')">Создать проект</a>
+            </div>
+            <div class="footer-section">
+                <h4>Контакты</h4>
+                <p>Email: help@projects.ru</p>
+                <p>Телефон: +7 (999) 123-45-67</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 ПомощьПроектам. Все права защищены.</p>
+        </div>
+    </footer>
+
     <script src="app.js"></script>
+    <script>
+        // Предзагрузка темы
+        if (localStorage.getItem('darkTheme') === 'true') {
+            document.body.classList.add('dark-theme');
+            document.getElementById('themeIcon').textContent = '☀️';
+        }
+    </script>
 </body>
 </html>
