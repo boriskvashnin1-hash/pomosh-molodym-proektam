@@ -850,56 +850,7 @@ class CrowdfundingApp {
         }
     }
 
-    getDemoProjects() {
-        return [
-            {
-                id: '1',
-                title: "Школьный сад мечты",
-                description: "Создание современной зоны отдыха с растениями и местом для учебы на открытом воздухе.",
-                goal: 50000,
-                collected: 32500,
-                category: "экология",
-                author: "Эко-клуб школы №15",
-                createdAt: new Date('2024-01-15').toISOString(),
-                donors: 47,
-                status: "active",
-                deadline: 45,
-                isFavorite: false,
-                rating: { total: 23, count: 5 },
-                averageRating: 4.6
-            },
-            {
-                id: '2', 
-                title: "Робототехника для всех",
-                description: "Закупка оборудования для кружка робототехники и проведение мастер-классов.",
-                goal: 75000,
-                collected: 68200,
-                category: "технологии", 
-                author: "IT-лаборатория",
-                createdAt: new Date('2024-01-10').toISOString(),
-                donors: 89,
-                status: "active",
-                deadline: 15,
-                isFavorite: true,
-                rating: { total: 45, count: 10 },
-                averageRating: 4.5
-            },
-            {
-                id: '3',
-                title: "Молодежный театр",
-                description: "Создание театральной студии для подростков.",
-                goal: 30000,
-                collected: 18500,
-                category: "искусство",
-                author: "Творческая мастерская",
-                createdAt: new Date('2024-01-20').toISOString(),
-                donors: 23,
-                status: "active",
-                deadline: 60,
-                isFavorite: false
-            }
-        ];
-    }
+
 
     // 📊 ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
     getPlatformStats() {
