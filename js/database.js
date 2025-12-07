@@ -1,14 +1,39 @@
 // js/database.js - Работа с данными проектов
 
-class ProjectDatabase {
+// js/database.js (упрощенная версия)
+class Database {
     constructor() {
-        this.projects = [];
         this.init();
     }
     
     async init() {
-        await this.loadProjects();
+        console.log('Database initialized');
     }
+    
+    // Просто используем projectsManager
+    getAllProjects() {
+        return window.projectsManager.getAllProjects();
+    }
+    
+    getProjectById(id) {
+        return window.projectsManager.getProjectById(id);
+    }
+    
+    async createProject(projectData) {
+        return window.projectsManager.createProject(projectData);
+    }
+    
+    async supportProject(projectId, amount) {
+        return window.projectsManager.supportProject(projectId, amount);
+    }
+    
+    async deleteProject(projectId) {
+        return window.projectsManager.deleteProject(projectId);
+    }
+}
+
+// Создаем глобальный экземпляр
+window.projectDB = new Database();
     
     // Загрузка проектов
     async loadProjects() {
