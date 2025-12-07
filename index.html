@@ -20,6 +20,7 @@
     <title>Помощь молодым проектам</title>
     <meta name="description" content="Платформа для поддержки молодых проектов и идей">
     <link rel="stylesheet" href="style.css">
+    <script src="js/database.js"></script>
 </head>
 <body>
     <!-- Навигация -->
@@ -76,6 +77,90 @@
                 <a href="#/create" onclick="app.navigate('create')">Создать проект</a>
             </div>
             <div class="footer-section">
+                <!-- Форма регистрации -->
+<section id="registration" style="display: none; padding: 40px 20px; background: #f5f5f5;">
+  <div class="container">
+    <h2>Регистрация для учащихся</h2>
+    
+    <form id="registerForm" onsubmit="return false;">
+      <div class="form-group">
+        <input type="text" id="fullName" placeholder="ФИО" required>
+      </div>
+      <div class="form-group">
+        <input type="email" id="email" placeholder="Email" required>
+      </div>
+      <div class="form-group">
+        <input type="password" id="password" placeholder="Пароль (минимум 6 символов)" minlength="6" required>
+      </div>
+      <div class="form-group">
+        <input type="text" id="school" placeholder="Школа/Учебное заведение">
+      </div>
+      <div class="form-group">
+        <input type="text" id="class" placeholder="Класс/Группа">
+      </div>
+      <div class="form-group">
+        <button type="button" onclick="registerUser()" style="padding: 12px 30px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+          Зарегистрироваться
+        </button>
+      </div>
+    </form>
+    
+    <p id="registerMessage"></p>
+  </div>
+</section>
+
+<!-- Кнопка показа/скрытия формы -->
+<button onclick="toggleRegistration()" style="position: fixed; bottom: 20px; right: 20px; padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 50px; cursor: pointer; z-index: 1000;">
+  👤 Регистрация
+</button>
+
+<script>
+// Функции для формы
+function toggleRegistration() {
+  const form = document.getElementById('registration')
+  form.style.display = form.style.display === 'none' ? 'block' : 'none'
+}
+
+async function registerUser() {
+  const userData = {
+    full_name: document.getElementById('fullName').value,
+    email: document.getElementById('email').value,
+    school: document.getElementById('school').value,
+    class: document.getElementById('class').value
+  }
+  
+  const password = document.getElementById('password').value
+  
+  const messageEl = document.getElementById('registerMessage')
+  messageEl.style.color = 'blue'
+  messageEl.textContent = 'Регистрация...'
+  
+  try {
+    const { data, error } = await window.database.registerUser(
+      userData.email,
+      password,
+      userData
+    )
+    
+    if (error) throw error
+    
+    messageEl.style.color = 'green'
+    messageEl.innerHTML = '✅ Регистрация успешна!<br>Теперь вы можете создавать проекты.'
+    
+    // Очищаем форму
+    document.getElementById('registerForm').reset()
+    
+    // Скрываем форму через 3 секунды
+    setTimeout(() => {
+      document.getElementById('registration').style.display = 'none'
+    }, 3000)
+    
+  } catch (error) {
+    messageEl.style.color = 'red'
+    messageEl.textContent = `Ошибка: ${error.message}`
+  }
+}
+</script>
                 <h4>Контакты</h4>
                 <p>Email: help@projects.ru</p>
                 <p>Телефон: +7 (999) 123-45-67</p>
@@ -93,6 +178,7 @@
             document.body.classList.add('dark-theme');
             document.getElementById('themeIcon').textContent = '☀️';
         }
+        
     </script>
 </body>
 </html>
