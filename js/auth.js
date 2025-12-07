@@ -1,4 +1,4 @@
-// js/auth.js - Система аутентификации
+
 
 class AuthSystem {
     constructor() {
