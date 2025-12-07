@@ -1,6 +1,4 @@
-// js/config.js - Конфигурация Supabase
 
-// ЗАМЕНИТЕ ЭТИ ЗНАЧЕНИЯ НА СВОИ!
 const SUPABASE_CONFIG = {
     url: https://njccbuhncnjudlgszcfd.supabase.co,
     anonKey: https://njccbuhncnjudlgszcfd.supabase.co    
