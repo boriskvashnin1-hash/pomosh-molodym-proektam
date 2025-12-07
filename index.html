@@ -178,7 +178,47 @@ async function registerUser() {
             document.body.classList.add('dark-theme');
             document.getElementById('themeIcon').textContent = '☀️';
         }
-        
+        <!-- Админ-панель (только для администратора) -->
+<div id="adminPanel" style="display: none; margin-top: 50px; padding: 20px; background: #333; color: white;">
+  <h3>📊 Админ-панель</h3>
+  <button onclick="loadUsers()">Загрузить пользователей</button>
+  <div id="usersList" style="margin-top: 20px;"></div>
+</div>
+
+<script>
+// Простая проверка на админа (для демо)
+const adminEmail = 'admin@school.ru' // Замените на ваш email
+
+// Показываем админ-панель если это админ
+function checkAdmin() {
+  const currentEmail = localStorage.getItem('helprojects_current_email')
+  if (currentEmail === adminEmail) {
+    document.getElementById('adminPanel').style.display = 'block'
+  }
+}
+
+async function loadUsers() {
+  const users = await window.database.getUsers()
+  const listEl = document.getElementById('usersList')
+  
+  let html = '<table border="1" style="width:100%; color:white;"><tr><th>Email</th><th>Имя</th><th>Школа</th><th>Дата</th></tr>'
+  
+  users.forEach(user => {
+    html += `<tr>
+      <td>${user.email}</td>
+      <td>${user.full_name || '-'}</td>
+      <td>${user.school || '-'}</td>
+      <td>${new Date(user.created_at).toLocaleDateString()}</td>
+    </tr>`
+  })
+  
+  html += '</table>'
+  listEl.innerHTML = html
+}
+
+// Проверяем при загрузке
+document.addEventListener('DOMContentLoaded', checkAdmin)
+</script>
     </script>
 </body>
 </html>
