@@ -2,8 +2,8 @@
 
 // ЗАМЕНИТЕ ЭТИ ЗНАЧЕНИЯ НА СВОИ!
 const SUPABASE_CONFIG = {
-    url: 'https://njccbuhncnjudlgszcfd.supabase.co', // Ваш Supabase URL
-    anonKey: 'https://njccbuhncnjudlgszcfd.supabase.co'     // Ваш публичный ключ
+    url: https://njccbuhncnjudlgszcfd.supabase.co,
+    anonKey: https://njccbuhncnjudlgszcfd.supabase.co    
 };
 
 // Инициализация Supabase
