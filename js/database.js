@@ -1,58 +1,31 @@
-// js/database.js - упрощенный для работы с projects.js
+// js/database.js - упрощенный
+console.log('🗄️ Database loading...');
+
 class Database {
     constructor() {
-        console.log('Database initialized');
-    }
-    
-    async init() {
-        if (window.projectsManager) {
-            await window.projectsManager.init();
-        }
+        console.log('✅ Database created');
     }
     
     getAllProjects() {
-        return window.projectsManager ? window.projectsManager.getAllProjects() : [];
+        return window.projectsManager.getAllProjects();
     }
     
     getProjectById(id) {
-        return window.projectsManager ? window.projectsManager.getProjectById(id) : null;
+        return window.projectsManager.getProjectById(id);
     }
     
-    async createProject(projectData) {
-        if (window.projectsManager) {
-            return window.projectsManager.createProject(projectData);
-        }
-        return { success: false, message: 'Projects manager not available' };
+    createProject(projectData) {
+        return window.projectsManager.createProject(projectData);
     }
     
-    async supportProject(projectId, amount) {
-        if (window.projectsManager) {
-            return window.projectsManager.supportProject(projectId, amount);
-        }
-        return { success: false, message: 'Projects manager not available' };
-    }
-    
-    async deleteProject(projectId) {
-        if (window.projectsManager) {
-            return window.projectsManager.deleteProject(projectId);
-        }
-        return { success: false, message: 'Projects manager not available' };
-    }
-    
-    getProjects() {
-        return this.getAllProjects();
+    supportProject(projectId, amount) {
+        return window.projectsManager.supportProject(projectId, amount);
     }
     
     async getUsers() {
-        const users = JSON.parse(localStorage.getItem('helprojects_users') || '[]');
-        return users;
+        return JSON.parse(localStorage.getItem('helprojects_users') || '[]');
     }
 }
 
 window.projectDB = new Database();
-
-document.addEventListener('DOMContentLoaded', () => {
-    if (window.projectDB) {
-        window.projectDB.init();
-    }
-});
+console.log('✅ Database ready');
