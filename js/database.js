@@ -1,4 +1,4 @@
-// js/database.js - упрощенный
+
 console.log('🗄️ Database loading...');
 
 class Database {
