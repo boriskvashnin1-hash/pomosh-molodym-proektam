@@ -1,1 +1,571 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создать проект - HelpProjects</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <i class="fas fa-hands-helping"></i>
+                <span>HelpProjects</span>
+            </a>
+            
+            <div class="nav-links">
+                <a href="../index.html"><i class="fas fa-home"></i> Главная</a>
+                <a href="projects.html"><i class="fas fa-project-diagram"></i> Проекты</a>
+                <a href="create.html" class="active"><i class="fas fa-plus-circle"></i> Создать</a>
+                <div id="user-menu">
+                    <a href="profile.html"><i class="fas fa-user"></i> Профиль</a>
+                    <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Выйти</a>
+                </div>
+            </div>
+            
+            <button class="menu-toggle" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
 
+    <main class="container">
+        <div class="create-project">
+            <h1><i class="fas fa-rocket"></i> Создать новый проект</h1>
+            <p class="subtitle">Расскажите о своей идее и начните собирать средства на ее реализацию</p>
+            
+            <form id="project-form" onsubmit="return createProject(event)">
+                <!-- Основная информация -->
+                <div class="form-section">
+                    <h2><i class="fas fa-info-circle"></i> Основная информация</h2>
+                    
+                    <div class="form-group">
+                        <label for="project-title">Название проекта *</label>
+                        <input type="text" id="project-title" placeholder="Например: Школьный робот-помощник" required>
+                        <small>Придумайте короткое и понятное название</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="project-description">Описание проекта *</label>
+                        <textarea id="project-description" rows="5" placeholder="Подробно опишите ваш проект: цели, задачи, план реализации..." required></textarea>
+                        <small>Расскажите, почему ваш проект важен и как вы планируете его реализовать</small>
+                    </div>
+                </div>
+                
+                <!-- Цель сбора -->
+                <div class="form-section">
+                    <h2><i class="fas fa-bullseye"></i> Цель сбора</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="project-goal">Сумма сбора (₽) *</label>
+                            <input type="number" id="project-goal" min="1000" step="100" placeholder="10000" required>
+                            <small>Минимальная сумма: 1 000 ₽</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="project-deadline">Срок сбора</label>
+                            <input type="date" id="project-deadline" min="<?php echo date('Y-m-d'); ?>">
+                            <small>Оставьте пустым для бессрочного сбора</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Категория -->
+                <div class="form-section">
+                    <h2><i class="fas fa-tag"></i> Категория</h2>
+                    
+                    <div class="category-grid">
+                        <label class="category-option">
+                            <input type="radio" name="category" value="technology" required>
+                            <div class="category-card">
+                                <i class="fas fa-robot"></i>
+                                <h3>Технологии</h3>
+                                <p>Роботы, программирование, 3D-печать</p>
+                            </div>
+                        </label>
+                        
+                        <label class="category-option">
+                            <input type="radio" name="category" value="science">
+                            <div class="category-card">
+                                <i class="fas fa-flask"></i>
+                                <h3>Наука</h3>
+                                <p>Исследования, эксперименты</p>
+                            </div>
+                        </label>
+                        
+                        <label class="category-option">
+                            <input type="radio" name="category" value="art">
+                            <div class="category-card">
+                                <i class="fas fa-palette"></i>
+                                <h3>Искусство</h3>
+                                <p>Рисование, музыка, театр</p>
+                            </div>
+                        </label>
+                        
+                        <label class="category-option">
+                            <input type="radio" name="category" value="ecology">
+                            <div class="category-card">
+                                <i class="fas fa-leaf"></i>
+                                <h3>Экология</h3>
+                                <p>Озеленение, переработка</p>
+                            </div>
+                        </label>
+                        
+                        <label class="category-option">
+                            <input type="radio" name="category" value="sport">
+                            <div class="category-card">
+                                <i class="fas fa-running"></i>
+                                <h3>Спорт</h3>
+                                <p>Тренажеры, секции</p>
+                            </div>
+                        </label>
+                        
+                        <label class="category-option">
+                            <input type="radio" name="category" value="other">
+                            <div class="category-card">
+                                <i class="fas fa-star"></i>
+                                <h3>Другое</h3>
+                                <p>Другие проекты</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Награды для поддержавших -->
+                <div class="form-section">
+                    <h2><i class="fas fa-gift"></i> Награды для поддержавших (опционально)</h2>
+                    
+                    <div id="rewards-container">
+                        <div class="reward-item">
+                            <div class="reward-header">
+                                <h3>Награда #1</h3>
+                                <button type="button" class="btn-remove" onclick="removeReward(this)">×</button>
+                            </div>
+                            <div class="form-group">
+                                <label>Сумма (₽)</label>
+                                <input type="number" class="reward-amount" min="100" placeholder="500" value="500">
+                            </div>
+                            <div class="form-group">
+                                <label>Описание награды</label>
+                                <textarea class="reward-description" rows="2" placeholder="Например: Имя в списке благодарностей">Имя в списке благодарностей на сайте</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-outline" onclick="addReward()">
+                        <i class="fas fa-plus"></i> Добавить награду
+                    </button>
+                </div>
+                
+                <!-- Кнопки отправки -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <i class="fas fa-paper-plane"></i> Опубликовать проект
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                        <i class="fas fa-save"></i> Сохранить черновик
+                    </button>
+                </div>
+                
+                <div id="project-message" class="message"></div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-hands-helping"></i> HelpProjects</h3>
+                    <p>Краудфандинговая платформа для реализации учебных проектов учащихся.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Навигация</h3>
+                    <a href="../index.html">Главная</a>
+                    <a href="projects.html">Проекты</a>
+                    <a href="create.html">Создать проект</a>
+                    <a href="profile.html">Профиль</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 HelpProjects. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Подключаем скрипты -->
+    <script src="../js/config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/database.js"></script>
+    <script>
+        // Проверка авторизации
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = window.auth?.getUser();
+            
+            if (!user) {
+                window.location.href = '../index.html';
+                return;
+            }
+            
+            // Обновляем UI
+            if (window.auth) {
+                window.auth.updateUI();
+            }
+            
+            // Устанавливаем минимальную дату (завтра)
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const deadlineInput = document.getElementById('project-deadline');
+            if (deadlineInput) {
+                deadlineInput.min = tomorrow.toISOString().split('T')[0];
+            }
+        });
+        
+        // Добавление награды
+        function addReward() {
+            const container = document.getElementById('rewards-container');
+            const rewardCount = container.children.length + 1;
+            
+            const rewardItem = document.createElement('div');
+            rewardItem.className = 'reward-item';
+            rewardItem.innerHTML = `
+                <div class="reward-header">
+                    <h3>Награда #${rewardCount}</h3>
+                    <button type="button" class="btn-remove" onclick="removeReward(this)">×</button>
+                </div>
+                <div class="form-group">
+                    <label>Сумма (₽)</label>
+                    <input type="number" class="reward-amount" min="100" placeholder="500" value="${500 * rewardCount}">
+                </div>
+                <div class="form-group">
+                    <label>Описание награды</label>
+                    <textarea class="reward-description" rows="2" placeholder="Например: Имя в списке благодарностей">Награда за поддержку проекта</textarea>
+                </div>
+            `;
+            
+            container.appendChild(rewardItem);
+        }
+        
+        // Удаление награды
+        function removeReward(button) {
+            const container = document.getElementById('rewards-container');
+            if (container.children.length > 1) {
+                button.closest('.reward-item').remove();
+                // Пересчитываем номера
+                const items = container.querySelectorAll('.reward-item');
+                items.forEach((item, index) => {
+                    item.querySelector('h3').textContent = `Награда #${index + 1}`;
+                });
+            }
+        }
+        
+        // Создание проекта
+        async function createProject(event) {
+            event.preventDefault();
+            
+            // Проверка авторизации
+            const user = window.auth.getUser();
+            if (!user) {
+                window.location.href = '../index.html';
+                return;
+            }
+            
+            // Сбор данных
+            const projectData = {
+                title: document.getElementById('project-title').value,
+                description: document.getElementById('project-description').value,
+                goal: parseFloat(document.getElementById('project-goal').value),
+                deadline: document.getElementById('project-deadline').value || null,
+                category: document.querySelector('input[name="category"]:checked')?.value || 'other',
+                author: user.fullName || user.full_name || user.email,
+                author_email: user.email
+            };
+            
+            // Сбор наград
+            const rewards = [];
+            const rewardItems = document.querySelectorAll('.reward-item');
+            rewardItems.forEach(item => {
+                const amount = item.querySelector('.reward-amount').value;
+                const description = item.querySelector('.reward-description').value;
+                if (amount && description) {
+                    rewards.push({
+                        amount: parseFloat(amount),
+                        description: description
+                    });
+                }
+            });
+            
+            if (rewards.length > 0) {
+                projectData.rewards = rewards;
+            }
+            
+            // Валидация
+            if (projectData.goal < 1000) {
+                showMessage('Минимальная сумма сбора - 1 000 ₽', 'error');
+                return;
+            }
+            
+            const messageEl = document.getElementById('project-message');
+            messageEl.innerHTML = '<div class="loading">Создание проекта...</div>';
+            
+            try {
+                const result = await window.projectDB.createProject(projectData);
+                
+                if (result.success) {
+                    messageEl.innerHTML = `<div class="message success">
+                        <i class="fas fa-check-circle"></i> Проект успешно создан!
+                    </div>`;
+                    
+                    // Очистка формы
+                    event.target.reset();
+                    
+                    // Перенаправление через 2 секунды
+                    setTimeout(() => {
+                        window.location.href = 'projects.html';
+                    }, 2000);
+                    
+                } else {
+                    throw new Error(result.message || 'Ошибка создания проекта');
+                }
+                
+            } catch (error) {
+                messageEl.innerHTML = `<div class="message error">
+                    <i class="fas fa-exclamation-circle"></i> ${error.message}
+                </div>`;
+            }
+        }
+        
+        // Сохранение черновика
+        function saveDraft() {
+            const user = window.auth.getUser();
+            if (!user) return;
+            
+            const draftData = {
+                title: document.getElementById('project-title').value,
+                description: document.getElementById('project-description').value,
+                goal: document.getElementById('project-goal').value,
+                deadline: document.getElementById('project-deadline').value,
+                category: document.querySelector('input[name="category"]:checked')?.value,
+                saved_at: new Date().toISOString()
+            };
+            
+            // Сохраняем в localStorage
+            const drafts = JSON.parse(localStorage.getItem('helprojects_drafts') || '{}');
+            drafts[user.email] = draftData;
+            localStorage.setItem('helprojects_drafts', JSON.stringify(drafts));
+            
+            showMessage('Черновик сохранен', 'success');
+        }
+        
+        // Показать сообщение
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('project-message');
+            messageEl.innerHTML = `<div class="message ${type}">${text}</div>`;
+            
+            setTimeout(() => {
+                messageEl.innerHTML = '';
+            }, 3000);
+        }
+        
+        // Выход
+        function logout() {
+            window.auth.logout();
+            window.location.href = '../index.html';
+        }
+        
+        // Мобильное меню
+        function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+        
+        window.toggleMenu = toggleMenu;
+        window.logout = logout;
+    </script>
+    
+    <style>
+        /* Стили для создания проекта */
+        .create-project {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .create-project h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+        
+        .form-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .form-section h2 {
+            margin-bottom: 25px;
+            color: #4a6bdf;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .category-option {
+            cursor: pointer;
+        }
+        
+        .category-option input {
+            display: none;
+        }
+        
+        .category-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .category-option input:checked + .category-card {
+            border-color: #4a6bdf;
+            background: #edf0ff;
+        }
+        
+        .category-card i {
+            font-size: 2rem;
+            color: #4a6bdf;
+            margin-bottom: 15px;
+        }
+        
+        .category-card h3 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .category-card p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .reward-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .reward-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .reward-header h3 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+        
+        .btn-large {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #4a6bdf;
+        }
+        
+        small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .category-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn-large {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html>
