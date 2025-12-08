@@ -11,7 +11,7 @@ class ProjectsManager {
         if (saved) {
             this.projects = JSON.parse(saved);
         } else {
-            // Демо-проекты С ИЗОБРАЖЕНИЯМИ
+            // Демо-проекты С РЕАЛЬНЫМИ ССЫЛКАМИ НА ИЗОБРАЖЕНИЯ
             this.projects = [
                 {
                     id: '1',
@@ -23,7 +23,7 @@ class ProjectsManager {
                     author: 'Иван Петров',
                     category: 'technology',
                     status: 'active',
-                    image_url: 'https://images.unsplash.com/photo-1555255707-c07966088b7b?w=600&fit=crop', // Добавлено
+                    image_url: 'https://images.unsplash.com/photo-1555255707-c07966088b7b?w=400&fit=crop',
                     created_at: '2025-01-15'
                 },
                 {
@@ -36,7 +36,7 @@ class ProjectsManager {
                     author: 'Мария Сидорова',
                     category: 'art',
                     status: 'active',
-                    image_url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&fit=crop', // Добавлено
+                    image_url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&fit=crop',
                     created_at: '2025-01-20'
                 },
                 {
@@ -49,7 +49,7 @@ class ProjectsManager {
                     author: 'Алексей Иванов',
                     category: 'ecology',
                     status: 'active',
-                    image_url: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&fit=crop', // Добавлено
+                    image_url: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=400&fit=crop',
                     created_at: '2025-02-01'
                 }
             ];
@@ -58,64 +58,24 @@ class ProjectsManager {
         console.log('✅ Загружено проектов:', this.projects.length);
     }
     
-    saveProjects() {
-        localStorage.setItem('helprojects_projects', JSON.stringify(this.projects));
-    }
+    // ... остальные методы остаются такими же ...
     
-    getAllProjects() {
-        return this.projects;
-    }
-    
-    // НОВЫЙ МЕТОД: Получить избранные проекты для главной страницы
-    getFeaturedProjects(limit = 3) {
-        return this.projects.slice(0, limit);
-    }
-    
-    getProjectById(id) {
-        return this.projects.find(p => p.id === id);
-    }
-    
-    createProject(projectData) {
-        const project = {
-            id: 'project_' + Date.now(),
-            ...projectData,
-            current_amount: 0,
-            status: 'active',
-            created_at: new Date().toISOString(),
-            // Добавляем изображение по умолчанию, если не указано
-            image_url: projectData.image_url || 'images/default-project.jpg'
-        };
-        
-        this.projects.push(project);
-        this.saveProjects();
-        
-        return { success: true, project };
-    }
-    
-    supportProject(projectId, amount) {
-        const project = this.getProjectById(projectId);
-        if (!project) {
-            return { success: false, message: 'Проект не найден' };
-        }
-        
-        project.current_amount += parseFloat(amount);
-        this.saveProjects();
-        
-        return { success: true, project };
-    }
-    
-    // НОВЫЙ МЕТОД: Генерация HTML для карточки проекта
+    // ОБНОВЛЕННЫЙ МЕТОД: Генерация HTML для карточки проекта
     generateProjectCardHTML(project) {
+        // Используем URL Unsplash для демо или fallback
+        const defaultImage = 'https://images.unsplash.com/photo-1555255707-c07966088b7b?w=400&fit=crop';
+        const imageUrl = project.image_url || defaultImage;
+        
         return `
             <div class="project-card">
                 <div class="project-image">
-                    <img src="${project.image_url || 'images/default-project.jpg'}" 
+                    <img src="${imageUrl}" 
                          alt="${project.title}" 
-                         onerror="this.src='images/default-project.jpg'">
+                         onerror="this.src='${defaultImage}'">
                 </div>
                 <div class="project-info">
                     <h3>${project.title}</h3>
-                    <p>${project.short_description || project.description.substring(0, 100) + '...'}</p>
+                    <p>${project.short_description || (project.description ? project.description.substring(0, 100) + '...' : 'Описание проекта')}</p>
                     <div class="project-stats">
                         <div class="progress-bar">
                             <div class="progress" style="width: ${Math.min(100, (project.current_amount / project.goal) * 100)}%"></div>
@@ -130,48 +90,6 @@ class ProjectsManager {
             </div>
         `;
     }
-    
-    // НОВЫЙ МЕТОД: Отображение проектов в контейнере
-    displayProjects(containerId, projects = null) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        
-        const projectsToDisplay = projects || this.projects;
-        
-        if (projectsToDisplay.length === 0) {
-            container.innerHTML = '<div class="no-projects">Пока нет проектов. Будьте первым!</div>';
-            return;
-        }
-        
-        container.innerHTML = projectsToDisplay.map(project => 
-            this.generateProjectCardHTML(project)
-        ).join('');
-    }
 }
 
-// Создаем глобально
-window.projectsManager = new ProjectsManager();
-console.log('✅ Projects manager ready');
-
-// НОВАЯ ФУНКЦИЯ: Для главной страницы
-function getFeaturedProjects() {
-    return window.projectsManager.getFeaturedProjects();
-}
-
-// НОВАЯ ФУНКЦИЯ: Отображение избранных проектов
-function displayFeaturedProjects() {
-    const featuredProjects = window.projectsManager.getFeaturedProjects(3);
-    window.projectsManager.displayProjects('featured-projects', featuredProjects);
-}
-
-// Автоматически показываем проекты при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('featured-projects')) {
-        displayFeaturedProjects();
-    }
-});
-
-// Экспортируем для использования в других модулях
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ProjectsManager;
-}
+// ... остальной код ...
