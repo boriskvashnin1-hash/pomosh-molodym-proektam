@@ -11,7 +11,7 @@ class ProjectsManager {
         if (saved) {
             this.projects = JSON.parse(saved);
         } else {
-            // Демо-проекты С РЕАЛЬНЫМИ ССЫЛКАМИ НА ИЗОБРАЖЕНИЯ
+            // Демо-проекты с реальными изображениями
             this.projects = [
                 {
                     id: '1',
@@ -58,13 +58,56 @@ class ProjectsManager {
         console.log('✅ Загружено проектов:', this.projects.length);
     }
     
-    // ... остальные методы остаются такими же ...
+    saveProjects() {
+        localStorage.setItem('helprojects_projects', JSON.stringify(this.projects));
+    }
     
-    // ОБНОВЛЕННЫЙ МЕТОД: Генерация HTML для карточки проекта
+    getAllProjects() {
+        return this.projects;
+    }
+    
+    getFeaturedProjects(limit = 3) {
+        return this.projects.slice(0, limit);
+    }
+    
+    getProjectById(id) {
+        return this.projects.find(p => p.id === id);
+    }
+    
+    createProject(projectData) {
+        const project = {
+            id: 'project_' + Date.now(),
+            ...projectData,
+            current_amount: 0,
+            status: 'active',
+            created_at: new Date().toISOString(),
+            image_url: projectData.image_url || 'https://images.unsplash.com/photo-1555255707-c07966088b7b?w=400&fit=crop'
+        };
+        
+        this.projects.push(project);
+        this.saveProjects();
+        
+        return { success: true, project };
+    }
+    
+    supportProject(projectId, amount) {
+        const project = this.getProjectById(projectId);
+        if (!project) {
+            return { success: false, message: 'Проект не найден' };
+        }
+        
+        project.current_amount += parseFloat(amount);
+        this.saveProjects();
+        
+        return { success: true, project };
+    }
+    
     generateProjectCardHTML(project) {
-        // Используем URL Unsplash для демо или fallback
         const defaultImage = 'https://images.unsplash.com/photo-1555255707-c07966088b7b?w=400&fit=crop';
         const imageUrl = project.image_url || defaultImage;
+        const progress = project.goal > 0 
+            ? Math.min(100, (project.current_amount / project.goal) * 100) 
+            : 0;
         
         return `
             <div class="project-card">
@@ -78,7 +121,7 @@ class ProjectsManager {
                     <p>${project.short_description || (project.description ? project.description.substring(0, 100) + '...' : 'Описание проекта')}</p>
                     <div class="project-stats">
                         <div class="progress-bar">
-                            <div class="progress" style="width: ${Math.min(100, (project.current_amount / project.goal) * 100)}%"></div>
+                            <div class="progress" style="width: ${progress}%"></div>
                         </div>
                         <div class="stats">
                             <span><i class="fas fa-ruble-sign"></i> ${project.current_amount.toLocaleString()} собрано</span>
@@ -90,6 +133,42 @@ class ProjectsManager {
             </div>
         `;
     }
+    
+    displayProjects(containerId, projects = null) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        const projectsToDisplay = projects || this.projects;
+        
+        if (projectsToDisplay.length === 0) {
+            container.innerHTML = '<div class="no-projects">Пока нет проектов. Будьте первым!</div>';
+            return;
+        }
+        
+        container.innerHTML = projectsToDisplay.map(project => 
+            this.generateProjectCardHTML(project)
+        ).join('');
+    }
 }
 
-// ... остальной код ...
+window.projectsManager = new ProjectsManager();
+console.log('✅ Projects manager ready');
+
+function getFeaturedProjects() {
+    return window.projectsManager.getFeaturedProjects();
+}
+
+function displayFeaturedProjects() {
+    const featuredProjects = window.projectsManager.getFeaturedProjects(3);
+    window.projectsManager.displayProjects('featured-projects', featuredProjects);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('featured-projects')) {
+        displayFeaturedProjects();
+    }
+});
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ProjectsManager;
+}
