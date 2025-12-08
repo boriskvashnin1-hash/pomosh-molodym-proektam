@@ -171,4 +171,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ProjectsManager;
+    // ДОБАВЬТЕ ЭТО В КОНЕЦ ФАЙЛА projects.js:
+
+// Проверка и исправление демо-данных
+function fixDemoImages() {
+    const projects = window.projectsManager.projects;
+    const demoImages = [
+        'https://images.unsplash.com/photo-1555255707-c07966088b7b?w=400&fit=crop',
+        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&fit=crop',
+        'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=400&fit=crop'
+    ];
+    
+    let updated = false;
+    projects.forEach((project, index) => {
+        if (!project.image_url) {
+            project.image_url = demoImages[index % demoImages.length];
+            updated = true;
+        }
+    });
+    
+    if (updated) {
+        window.projectsManager.saveProjects();
+        console.log('✅ Исправлены изображения проектов');
+    }
+}
+
+// Вызываем после загрузки
+setTimeout(fixDemoImages, 1000);
+
+// И принудительно перерисовываем проекты
+setTimeout(() => {
+    if (document.getElementById('featured-projects')) {
+        window.projectsManager.displayProjects('featured-projects', 
+            window.projectsManager.getFeaturedProjects(3));
+    }
+}, 1500);
 }
