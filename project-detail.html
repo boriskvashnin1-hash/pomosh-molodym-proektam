@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детали проекта - HelProjects</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .project-detail {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .project-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .project-meta {
+            display: flex;
+            gap: 2rem;
+            margin: 1rem 0;
+            color: #718096;
+        }
+        
+        .project-progress {
+            margin: 2rem 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .tasks-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 2rem;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        
+        .task-checkbox {
+            margin-right: 1rem;
+        }
+        
+        .task-content {
+            flex-grow: 1;
+        }
+        
+        .task-completed {
+            text-decoration: line-through;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="logo">
+                <i class="fas fa-rocket"></i>
+                <span>HelProjects</span>
+            </a>
+            <div class="nav-links">
+                <a href="../index.html"><i class="fas fa-home"></i> Главная</a>
+                <a href="projects.html"><i class="fas fa-project-diagram"></i> Проекты</a>
+                <a href="create.html"><i class="fas fa-plus-circle"></i> Создать</a>
+                <a href="profile.html"><i class="fas fa-user"></i> Профиль</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="project-detail">
+        <div class="breadcrumbs">
+            <a href="projects.html">Проекты</a> / <span id="projectTitleBreadcrumb">Загрузка...</span>
+        </div>
+        
+        <div class="project-header">
+            <h1 id="projectTitle">Загрузка...</h1>
+            <div class="project-meta">
+                <span><i class="fas fa-user"></i> <span id="projectAuthor">Загрузка...</span></span>
+                <span><i class="fas fa-book"></i> <span id="projectSubject">Загрузка...</span></span>
+                <span><i class="fas fa-calendar"></i> Создан: <span id="projectDate">Загрузка...</span></span>
+                <span><i class="fas fa-flag"></i> Статус: <span id="projectStatus" class="project-status">Загрузка...</span></span>
+            </div>
+            
+            <div class="project-progress">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Прогресс:</span>
+                    <span id="projectProgressText">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="projectProgressBar" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <p id="projectDescription" style="margin-top: 1rem;">Загрузка...</p>
+            
+            <div id="projectActions" class="project-actions" style="margin-top: 2rem;">
+                <!-- Кнопки действий будут добавлены через JS -->
+            </div>
+        </div>
+        
+        <div class="tasks-section">
+            <h2><i class="fas fa-tasks"></i> Задачи проекта</h2>
+            <div id="tasksContainer">
+                <!-- Задачи будут загружены через JS -->
+            </div>
+            
+            <form id="addTaskForm" style="margin-top: 2rem; display: none;">
+                <div class="form-group">
+                    <input type="text" id="taskTitle" class="form-control" placeholder="Новая задача..." required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Добавить задачу
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>HelProjects &copy; 2024 - Платформа для школьных проектов</p>
+    </footer>
+
+    <script src="../js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/database.js"></script>
+    
+    <script>
+        let currentProject = null;
+        
+        async function loadProject() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectId = urlParams.get('id');
+            
+            if (!projectId) {
+                window.location.href = 'projects.html';
+                return;
+            }
+            
+            // Загружаем проект
+            const { data: project, error } = await supabase
+                .from('projects')
+                .select('*, profiles(full_name, class)')
+                .eq('id', projectId)
+                .single();
+            
+            if (error || !project) {
+                alert('Проект не найден');
+                window.location.href = 'projects.html';
+                return;
+            }
+            
+            currentProject = project;
+            displayProject(project);
+            
+            // Загружаем задачи
+            await loadTasks(projectId);
+            
+            // Проверяем, является ли пользователь автором проекта
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user && user.id === project.user_id) {
+                document.getElementById('addTaskForm').style.display = 'block';
+                showEditButtons();
+            }
+        }
+        
+        function displayProject(project) {
+            document.getElementById('projectTitle').textContent = project.title;
+            document.getElementById('projectTitleBreadcrumb').textContent = project.title;
+            document.getElementById('projectDescription').textContent = project.description || 'Описание отсутствует';
+            document.getElementById('projectSubject').textContent = project.subject || 'Не указан';
+            
+            const author = project.profiles ? project.profiles.full_name : 'Неизвестный автор';
+            document.getElementById('projectAuthor').textContent = author;
+            
+            document.getElementById('projectDate').textContent = 
+                new Date(project.created_at).toLocaleDateString('ru-RU');
+            
+            const statusText = getStatusText(project.status);
+            document.getElementById('projectStatus').textContent = statusText;
+            document.getElementById('projectStatus').className = `project-status status-${project.status}`;
+            
+            document.getElementById('projectProgressText').textContent = `${project.progress || 0}%`;
+            document.getElementById('projectProgressBar').style.width = `${project.progress || 0}%`;
+        }
+        
+        async function loadTasks(projectId) {
+            const tasks = await db.getProjectTasks(projectId);
+            displayTasks(tasks);
+        }
+        
+        function displayTasks(tasks) {
+            const container = document.getElementById('tasksContainer');
+            container.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                container.innerHTML = '<p class="empty-state">Задач пока нет</p>';
+                return;
+            }
+            
+            tasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.className = 'task-item';
+                taskElement.innerHTML = `
+                    <div class="task-checkbox">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                               onchange="toggleTask('${task.id}', this.checked)">
+                    </div>
+                    <div class="task-content ${task.completed ? 'task-completed' : ''}">
+                        ${task.title}
+                        ${task.description ? `<p style="font-size: 0.9rem; color: #718096; margin-top: 0.5rem;">${task.description}</p>` : ''}
+                    </div>
+                `;
+                container.appendChild(taskElement);
+            });
+        }
+        
+        function showEditButtons() {
+            const actionsContainer = document.getElementById('projectActions');
+            actionsContainer.innerHTML = `
+                <button onclick="editCurrentProject()" class="btn btn-secondary">
+                    <i class="fas fa-edit"></i> Редактировать проект
+                </button>
+                <button onclick="deleteCurrentProject()" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Удалить проект
+                </button>
+            `;
+        }
+        
+        async function toggleTask(taskId, completed) {
+            const { error } = await supabase
+                .from('tasks')
+                .update({ completed })
+                .eq('id', taskId);
+            
+            if (error) {
+                alert('Ошибка обновления задачи: ' + error.message);
+            }
+        }
+        
+        document.getElementById('addTaskForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('taskTitle').value.trim();
+            if (!title) return;
+            
+            const task = await db.addTask(currentProject.id, {
+                title: title,
+                description: ''
+            });
+            
+            if (task) {
+                document.getElementById('taskTitle').value = '';
+                loadTasks(currentProject.id);
+            }
+        });
+        
+        function editCurrentProject() {
+            window.location.href = `edit-project.html?id=${currentProject.id}`;
+        }
+        
+        async function deleteCurrentProject() {
+            if (!confirm('Вы уверены, что хотите удалить этот проект?')) return;
+            
+            const success = await db.deleteProject(currentProject.id);
+            if (success) {
+                window.location.href = 'projects.html';
+            }
+        }
+        
+        function getStatusText(status) {
+            const statusMap = {
+                'planning': 'Планирование',
+                'active': 'В работе',
+                'completed': 'Завершен'
+            };
+            return statusMap[status] || status;
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadProject);
+    </script>
+</body>
+</html>
