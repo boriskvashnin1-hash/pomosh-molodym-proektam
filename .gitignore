@@ -13,3 +13,19 @@ supabase/config.toml
 # Системные файлы
 .DS_Store
 Thumbs.db
+# Временные файлы изображений
+*.tmp
+*.temp
+
+# Кэш изображений
+.thumbs/
+.cache/
+
+# Большие файлы
+*.psd
+*.ai
+*.sketch
+
+# Конфиденциальные изображения
+private-images/
+secret/
