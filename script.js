@@ -28,7 +28,115 @@ function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
 }
+// Функции для работы с изображениями и аватарами
 
+// Генерация аватара на основе имени
+function generateAvatar(name, size = 50) {
+    const colors = [
+        '#667eea', '#764ba2', '#48bb78', '#ecc94b',
+        '#f56565', '#4299e1', '#ed8936'
+    ];
+    
+    const initials = name
+        .split(' ')
+        .map(word => word[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+    
+    const colorIndex = name
+        .split('')
+        .reduce((sum, char) => sum + char.charCodeAt(0), 0) % colors.length;
+    
+    return {
+        initials,
+        color: colors[colorIndex],
+        size
+    };
+}
+
+// Создание элемента аватара
+function createAvatarElement(name, size = 50) {
+    const avatar = generateAvatar(name, size);
+    const div = document.createElement('div');
+    div.className = 'user-avatar';
+    div.style.width = `${avatar.size}px`;
+    div.style.height = `${avatar.size}px`;
+    div.style.background = avatar.color;
+    div.textContent = avatar.initials;
+    return div;
+}
+
+// Загрузка и отображение аватара пользователя
+function loadUserAvatar(userName, elementId) {
+    const avatar = createAvatarElement(userName);
+    const container = document.getElementById(elementId);
+    if (container) {
+        container.innerHTML = '';
+        container.appendChild(avatar);
+    }
+}
+
+// Обновление изображений-заглушек
+function updatePlaceholderImages() {
+    // Для проектов без изображений
+    document.querySelectorAll('.project-image-placeholder').forEach(el => {
+        if (!el.style.backgroundImage || el.style.backgroundImage === 'none') {
+            const subjects = ['Информатика', 'Физика', 'Химия', 'Биология', 'Математика'];
+            const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+            el.textContent = randomSubject.charAt(0);
+            el.style.background = getSubjectColor(randomSubject);
+        }
+    });
+}
+
+// Получение цвета для предмета
+function getSubjectColor(subject) {
+    const colorMap = {
+        'Информатика': '#667eea',
+        'Физика': '#764ba2',
+        'Химия': '#48bb78',
+        'Биология': '#ecc94b',
+        'Математика': '#f56565',
+        'История': '#4299e1',
+        'Обществознание': '#ed8936',
+        'Литература': '#38b2ac'
+    };
+    return colorMap[subject] || '#a0aec0';
+}
+
+// Предзагрузка важных изображений
+function preloadImages() {
+    const images = [
+        '../assets/images/hero-bg.jpg',
+        '../assets/images/project-placeholder.jpg'
+    ];
+    
+    images.forEach(src => {
+        const img = new Image();
+        img.src = src;
+    });
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    preloadImages();
+    updatePlaceholderImages();
+    
+    // Добавляем аватар текущему пользователю
+    if (window.currentUser) {
+        const userName = currentUser.user_metadata?.full_name || currentUser.email;
+        loadUserAvatar(userName, 'userAvatar');
+    }
+});
+
+// Экспорт функций
+window.imageUtils = {
+    generateAvatar,
+    createAvatarElement,
+    loadUserAvatar,
+    getSubjectColor
+};
 function validatePassword(password) {
     return password.length >= 6;
 }
