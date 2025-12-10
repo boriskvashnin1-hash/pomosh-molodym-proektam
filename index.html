@@ -3,248 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HelpProjects - Краудфандинг для учащихся</title>
+    <title>HelProjects - Главная</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Подключаем Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Навигация -->
     <nav class="navbar">
-        <div class="container">
-            <a href="index.html" class="logo">
-                <i class="fas fa-hands-helping"></i>
-                <span>HelpProjects</span>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-rocket"></i>
+                <span>HelProjects</span>
             </a>
-            
             <div class="nav-links">
-                <a href="index.html"><i class="fas fa-home"></i> Главная</a>
+                <a href="index.html" class="active"><i class="fas fa-home"></i> Главная</a>
                 <a href="pages/projects.html"><i class="fas fa-project-diagram"></i> Проекты</a>
                 <a href="pages/create.html"><i class="fas fa-plus-circle"></i> Создать</a>
-                <div id="auth-buttons">
-                    <a href="#" onclick="showLogin()" id="login-btn"><i class="fas fa-sign-in-alt"></i> Войти</a>
-                    <a href="#" onclick="showRegister()" id="register-btn"><i class="fas fa-user-plus"></i> Регистрация</a>
-                </div>
-                <div id="user-menu" style="display: none;">
-                    <a href="pages/profile.html" id="profile-link"><i class="fas fa-user"></i> Профиль</a>
-                    <a href="#" onclick="logout()" id="logout-link"><i class="fas fa-sign-out-alt"></i> Выйти</a>
-                </div>
+                <a href="#" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Войти</a>
+                <a href="#" id="profileLink" style="display:none;">
+                    <i class="fas fa-user"></i> Профиль
+                </a>
             </div>
-            
-            <button class="menu-toggle" onclick="toggleMenu()">
-                <i class="fas fa-bars"></i>
-            </button>
         </div>
     </nav>
 
     <!-- Герой-секция -->
-    <header class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1>Реализуй свою школьную мечту</h1>
-                <p>Краудфандинговая платформа для учащихся. Собери средства на учебные проекты, исследования и школьные инициативы.</p>
-                <div class="hero-buttons">
-                    <a href="pages/create.html" class="btn btn-primary">
-                        <i class="fas fa-rocket"></i> Начать проект
-                    </a>
-                    <a href="pages/projects.html" class="btn btn-secondary">
-                        <i class="fas fa-search"></i> Найти проекты
-                    </a>
-                </div>
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Управляй своими школьными проектами</h1>
+            <p>Платформа для учащихся 10 классов: создавай, отслеживай и делитесь своими индивидуальными проектами</p>
+            <div class="hero-buttons">
+                <a href="pages/projects.html" class="btn btn-primary">Смотреть проекты</a>
+                <a href="pages/create.html" class="btn btn-secondary">Создать проект</a>
             </div>
-          <div class="hero-image">
-    <img src="images/hero-students.jpg" alt="Студенты работают над проектом">
-    <div class="hero-text">
-        <h2>Помогаем реализовывать идеи</h2>
-    </div>
-</div>
         </div>
-    </header>
+        <div class="hero-image">
+            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Студенты работают над проектом">
+        </div>
+    </section>
 
-    <!-- Преимущества -->
+    <!-- Функции -->
     <section class="features">
-        <div class="container">
-            <h2>Почему выбирают нас</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <h3>Только для учащихся</h3>
-                    <p>Специально для школьников и студентов. Поддержка учебных заведений.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h3>Безопасно</h3>
-                    <p>Все проекты проверяются. Прозрачное использование средств.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-hand-holding-usd"></i>
-                    </div>
-                    <h3>0% комиссия</h3>
-                    <p>Бесплатно для образовательных проектов. Все средства идут автору.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3>Сообщество</h3>
-                    <p>Поддержка от других учащихся, учителей и родителей.</p>
-                </div>
+        <h2>Возможности платформы</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-database"></i>
+                <h3>Хранилище проектов</h3>
+                <p>Сохраняйте все свои проекты в одном месте с доступом из любой точки</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-chart-line"></i>
+                <h3>Отслеживание прогресса</h3>
+                <p>Отмечайте этапы выполнения и следите за прогрессом</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-users"></i>
+                <h3>Сообщество</h3>
+                <p>Делитесь проектами с одноклассниками и преподавателями</p>
             </div>
         </div>
     </section>
 
-    <!-- Популярные проекты -->
-    <section class="projects-preview">
-        <div class="container">
-            <h2>Популярные проекты</h2>
-            <div class="projects-grid" id="featured-projects">
-                <!-- Проекты загружаются через JS -->
-                <div class="loading">Загрузка проектов...</div>
-            </div>
-            <div class="text-center">
-                <a href="pages/projects.html" class="btn btn-outline">
-                    <i class="fas fa-eye"></i> Смотреть все проекты
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Как это работает -->
-    <section class="how-it-works">
-        <div class="container">
-            <h2>Как это работает</h2>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3>Регистрация</h3>
-                    <p>Создайте аккаунт учащегося</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3>Создание проекта</h3>
-                    <p>Опишите свою идею и цель сбора</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3>Продвижение</h3>
-                    <p>Расскажите о проекте друзьям и в соцсетях</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <h3>Реализация</h3>
-                    <p>Получите средства и реализуйте проект</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Формы авторизации (модальные окна) -->
-    <div id="auth-modal" class="modal">
+    <!-- Модальное окно входа -->
+    <div id="authModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            
-            <div id="register-form">
-                <h2><i class="fas fa-user-plus"></i> Регистрация</h2>
-                <form id="registerForm" onsubmit="return registerUser(event)">
-                    <div class="form-group">
-                        <label for="fullName"><i class="fas fa-user"></i> ФИО</label>
-                        <input type="text" id="fullName" placeholder="Иванов Иван Иванович" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email"><i class="fas fa-envelope"></i> Email</label>
-                        <input type="email" id="email" placeholder="student@school.ru" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password"><i class="fas fa-lock"></i> Пароль</label>
-                        <input type="password" id="password" placeholder="Не менее 6 символов" minlength="6" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="school"><i class="fas fa-school"></i> Учебное заведение</label>
-                        <input type="text" id="school" placeholder="Школа/Колледж/ВУЗ">
-                    </div>
-                    <div class="form-group">
-                        <label for="class"><i class="fas fa-users"></i> Класс/Группа</label>
-                        <input type="text" id="class" placeholder="11А или Группа П-21">
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-block">
-                        <i class="fas fa-check"></i> Зарегистрироваться
-                    </button>
-                </form>
-                <p class="form-switch">
-                    Уже есть аккаунт? <a href="#" onclick="showLoginForm()">Войти</a>
-                </p>
-                <div id="register-message" class="message"></div>
-            </div>
-            
-            <div id="login-form" style="display: none;">
-                <h2><i class="fas fa-sign-in-alt"></i> Вход</h2>
-                <form id="loginForm" onsubmit="return loginUser(event)">
-                    <div class="form-group">
-                        <label for="login-email"><i class="fas fa-envelope"></i> Email</label>
-                        <input type="email" id="login-email" placeholder="student@school.ru" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password"><i class="fas fa-lock"></i> Пароль</label>
-                        <input type="password" id="login-password" placeholder="Ваш пароль" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-block">
-                        <i class="fas fa-sign-in-alt"></i> Войти
-                    </button>
-                </form>
-                <p class="form-switch">
-                    Нет аккаунта? <a href="#" onclick="showRegisterForm()">Зарегистрироваться</a>
-                </p>
-                <div id="login-message" class="message"></div>
+            <span class="close">&times;</span>
+            <h2>Вход в систему</h2>
+            <div class="auth-form">
+                <div id="loginForm">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                    <input type="password" id="loginPassword" placeholder="Пароль" required>
+                    <button onclick="login()" class="btn btn-primary">Войти</button>
+                    <p class="auth-switch">Нет аккаунта? <a href="#" id="showRegister">Зарегистрироваться</a></p>
+                </div>
+                <div id="registerForm" style="display:none;">
+                    <input type="email" id="registerEmail" placeholder="Email" required>
+                    <input type="password" id="registerPassword" placeholder="Пароль" required>
+                    <input type="text" id="registerFullName" placeholder="ФИО" required>
+                    <input type="text" id="registerClass" placeholder="Класс (10А)" required>
+                    <button onclick="register()" class="btn btn-primary">Зарегистрироваться</button>
+                    <p class="auth-switch">Уже есть аккаунт? <a href="#" id="showLogin">Войти</a></p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Футер -->
+    <!-- Подвал -->
     <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3><i class="fas fa-hands-helping"></i> HelpProjects</h3>
-                    <p>Краудфандинговая платформа для реализации учебных проектов учащихся.</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Навигация</h3>
-                    <a href="index.html">Главная</a>
-                    <a href="pages/projects.html">Проекты</a>
-                    <a href="pages/create.html">Создать проект</a>
-                    <a href="pages/profile.html">Профиль</a>
-                </div>
-                <div class="footer-section">
-                    <h3>Контакты</h3>
-                    <p><i class="fas fa-envelope"></i> support@helpprojects.ru</p>
-                    <p><i class="fas fa-phone"></i> +7 (XXX) XXX-XX-XX</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Мы в соцсетях</h3>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-vk"></i></a>
-                        <a href="#"><i class="fab fa-telegram"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 HelpProjects. Все права защищены.</p>
-            </div>
-        </div>
+        <p>HelProjects &copy; 2024 - Платформа для школьных проектов</p>
+        <p>Создано учащимися 10 класса</p>
     </footer>
 
-   <!-- Подключаем скрипты -->
-<script src="js/config.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/projects.js"></script> <!-- НОВЫЙ ФАЙЛ -->
-<script src="js/database.js"></script> <!-- ОБНОВЛЕННЫЙ -->
-<script src="script.js"></script>
+    <!-- Скрипты -->
+    <script src="js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/database.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
